@@ -72,6 +72,26 @@ function validateInput(body) {
     return null;
 }
 
+// Function to log generated itineraries
+async function logItinerary(destinations, preferences, budget, itinerary) {
+    const logEntry = `
+Date: ${new Date().toISOString()}
+Destinations: ${destinations.join(', ')}
+Preferences: ${preferences}
+Budget: $${budget}
+Itinerary:
+${itinerary}
+----------------------------------------
+`;
+
+    try {
+        await fs.appendFile('travels.log', logEntry);
+        console.log('Itinerary logged successfully');
+    } catch (error) {
+        console.error('Error logging itinerary:', error);
+    }
+}
+
 // Function to handle POST request for itinerary optimization
 async function handleOptimizeItinerary(req, res) {
     let body = '';
@@ -93,8 +113,9 @@ async function handleOptimizeItinerary(req, res) {
 
             // Check cache
             if (cache.has(cacheKey)) {
+                const cachedItinerary = cache.get(cacheKey);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ itinerary: cache.get(cacheKey), source: 'cache' }));
+                res.end(JSON.stringify({ itinerary: cachedItinerary, source: 'cache' }));
                 return;
             }
 
@@ -112,6 +133,9 @@ async function handleOptimizeItinerary(req, res) {
             
             // Cache the result
             cache.set(cacheKey, itinerary);
+
+            // Log the generated itinerary
+            await logItinerary(destinations, preferences, budget, itinerary);
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ itinerary, source: 'generated' }));

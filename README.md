@@ -61,6 +61,23 @@ Before you begin, ensure you have met the following requirements:
   - Body: `{ "destinations": ["City1", "City2"], "preferences": "Your preferences", "budget": 5000 }`
   - Response: `{ "itinerary": "Your generated itinerary" }`
 
+## Logging
+
+The application logs all generated itineraries to a `travels.log` file in the project root directory. Each log entry includes:
+
+- Timestamp
+- Destinations
+- User preferences
+- Budget
+- Generated itinerary
+
+This log can be useful for:
+- Debugging
+- Analyzing popular destinations and preferences
+- Improving the itinerary generation algorithm over time
+
+Note: Ensure the application has write permissions in the project directory.  
+
 ## Contributing
 
 Contributions to the Travel Itinerary Optimizer are welcome. Please follow these steps:
