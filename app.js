@@ -77,19 +77,14 @@ function validateInput(body) {
 
 // Function to log generated itineraries
 async function logItinerary(destinations, preferences, budget, itinerary) {
-    const logEntry = `
-Date: ${new Date().toISOString()}
-Destinations: ${destinations.join(', ')}
-Preferences: ${preferences}
-Budget: $${budget}
-Itinerary:
-${itinerary}
-----------------------------------------
-`;
-
+    const date = new Date();
+    const timestamp = date.toISOString().replace(/[:.]/g, '-');
+    const safeDest = destinations.join('_').replace(/[^a-zA-Z0-9_]/g, '');
+    const filename = `logs/itinerary_${safeDest}_${timestamp}.md`;
+    const logEntry = `# Travel Itinerary\n\n**Date:** ${date.toLocaleString()}\n\n**Destinations:** ${destinations.join(', ')}\n\n**Preferences:** ${preferences}\n\n**Budget:** $${budget}\n\n---\n\n${itinerary}\n`;
     try {
-        await fs.appendFile('travels.log', logEntry);
-        console.log('Itinerary logged successfully');
+        await fs.writeFile(filename, logEntry);
+        console.log(`Itinerary logged to ${filename}`);
     } catch (error) {
         console.error('Error logging itinerary:', error);
     }
