@@ -68,6 +68,9 @@
             <label for="budget">Budget ($):</label>
             <input type="number" id="budget" required>
             
+            <label for="days">Number of Days:</label>
+            <input type="number" id="days" min="1" required>
+            
             <button type="submit">Generate Itinerary</button>
         </form>
         <div id="result"></div>
@@ -79,6 +82,7 @@
             const destinations = document.getElementById('destinations').value.split(',').map(d => d.trim());
             const preferences = document.getElementById('preferences').value;
             const budget = document.getElementById('budget').value;
+            const days = document.getElementById('days').value;
 
             const resultDiv = document.getElementById('result');
             resultDiv.textContent = 'Generating itinerary...';
@@ -89,7 +93,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ destinations, preferences, budget }),
+                    body: JSON.stringify({ destinations, preferences, budget, days }),
                 });
 
                 const data = await response.json();
@@ -102,6 +106,7 @@
             } catch (error) {
                 resultDiv.textContent = `Error: ${error.message}`;
             }
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
         });
     </script>
 </body>

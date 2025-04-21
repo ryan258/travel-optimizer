@@ -59,7 +59,7 @@ async function generateText(prompt) {
 
 // Function to validate input
 function validateInput(body) {
-    const { destinations, preferences, budget } = body;
+    const { destinations, preferences, budget, days } = body;
     if (!Array.isArray(destinations) || destinations.length === 0) {
         return 'At least one destination is required';
     }
@@ -68,6 +68,9 @@ function validateInput(body) {
     }
     if (isNaN(Number(budget))) {
         return 'Budget must be a number';
+    }
+    if (isNaN(Number(days)) || Number(days) < 1) {
+        return 'Number of days must be a positive integer';
     }
     return null;
 }
@@ -108,33 +111,13 @@ async function handleOptimizeItinerary(req, res) {
                 return;
             }
 
-            const { destinations, preferences, budget } = parsedBody;
-            const cacheKey = `${destinations.join(',')}-${preferences}-${budget}`;
-
-            // Check cache
-            if (cache.has(cacheKey)) {
-                const cachedItinerary = cache.get(cacheKey);
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ itinerary: cachedItinerary, source: 'cache' }));
-                return;
-            }
-
-            // Generate AI prompt
-            const prompt = `Create a detailed, day-by-day travel itinerary for the following destinations: ${destinations.join(', ')}. 
-            Preferences: ${preferences}. Budget: $${budget}. 
-            For each day, suggest:
-            1. Places to visit with brief descriptions
-            2. Recommended restaurants or local cuisine to try
-            3. Transportation options between locations
-            4. Estimated costs for activities and transportation
-            Optimize the route to minimize travel time and maximize experiences within the budget.`;
-
+            let { destinations, preferences, budget, days } = parsedBody;
+            days = Number(days); // Ensure days is a number
+            // Always generate a fresh itinerary (disable cache)
+            const prompt = `Generate exactly ${days} days of a detailed, day-by-day travel itinerary.\nEach day should be labeled as 'Day 1', 'Day 2', etc.\nDestinations: ${destinations.join(', ')}\nPreferences: ${preferences}\nBudget: $${budget}\nFormat the response with clear day-by-day breakdowns. Do not combine days.`;
             const itinerary = await generateText(prompt);
-            
-            // Cache the result
-            cache.set(cacheKey, itinerary);
 
-            // Log the generated itinerary
+            // Optionally, you can still log the result
             await logItinerary(destinations, preferences, budget, itinerary);
 
             res.writeHead(200, { 'Content-Type': 'application/json' });

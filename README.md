@@ -8,6 +8,7 @@ The Travel Itinerary Optimizer is a Node.js application that generates personali
 - Simple web interface for easy user interaction
 - Customizable travel preferences and budget considerations
 - Caching system for improved performance
+- Multi-day planning: Specify trip length and receive a day-by-day itinerary
 
 ## Prerequisites
 
@@ -51,6 +52,7 @@ Before you begin, ensure you have met the following requirements:
    - Enter your destinations (comma-separated)
    - Describe your travel preferences
    - Set your budget
+   - Enter the number of days for your trip
    - Click "Generate Itinerary"
 
 4. The application will generate and display your personalized travel itinerary.
@@ -58,7 +60,7 @@ Before you begin, ensure you have met the following requirements:
 ## API Endpoints
 
 - `POST /optimize-itinerary`: Generate a travel itinerary
-  - Body: `{ "destinations": ["City1", "City2"], "preferences": "Your preferences", "budget": 5000 }`
+  - Body: `{ "destinations": ["City1", "City2"], "preferences": "Your preferences", "budget": 5000, "days": 7 }`
   - Response: `{ "itinerary": "Your generated itinerary" }`
 
 ## Logging
