@@ -68,6 +68,19 @@
                     <label for="days" class="form-label">Number of Days:</label>
                     <input type="number" class="form-control" id="days" min="1" placeholder="e.g. 5" required>
                 </div>
+                <div class="col-md-4 mb-3">
+                    <label for="aiProvider" class="form-label">AI Provider:</label>
+                    <select class="form-select" id="aiProvider" required>
+                        <option value="openai">OpenAI</option>
+                        <option value="claude">Claude</option>
+                        <option value="gemini">Gemini</option>
+                        <option value="local">Local</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="modelName" class="form-label">Model Name:</label>
+                <input type="text" class="form-control" id="modelName" placeholder="e.g. gpt-4-turbo, claude-3-opus, gemini-pro, llama3.1:latest" required>
             </div>
             <button type="submit" class="btn btn-success w-100">Generate Itinerary</button>
         </form>
@@ -94,6 +107,8 @@
             const preferences = document.getElementById('preferences').value;
             const budget = document.getElementById('budget').value;
             const days = document.getElementById('days').value;
+            const aiProvider = document.getElementById('aiProvider').value;
+            const modelName = document.getElementById('modelName').value;
 
             try {
                 const response = await fetch('/optimize-itinerary', {
@@ -101,7 +116,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ destinations, preferences, budget, days }),
+                    body: JSON.stringify({ destinations, preferences, budget, days, aiProvider, modelName }),
                 });
                 const data = await response.json();
                 spinner.style.display = 'none';

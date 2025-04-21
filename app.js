@@ -4,6 +4,7 @@ const url = require('url');
 const fs = require('fs').promises;
 const path = require('path');
 const dotenv = require('dotenv');
+const axios = require('axios');
 
 dotenv.config();
 
@@ -57,6 +58,29 @@ async function generateText(prompt) {
     });
 }
 
+// Function to generate text using OpenAI API
+async function generateOpenAIText(prompt, modelName) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    const endpoint = 'https://api.openai.com/v1/chat/completions';
+    try {
+        const response = await axios.post(endpoint, {
+            model: modelName,
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 1000,
+            temperature: 0.7
+        }, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        console.error('OpenAI API error:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to fetch response from OpenAI API');
+    }
+}
+
 // Function to validate input
 function validateInput(body) {
     const { destinations, preferences, budget, days } = body;
@@ -106,13 +130,20 @@ async function handleOptimizeItinerary(req, res) {
                 return;
             }
 
-            let { destinations, preferences, budget, days } = parsedBody;
-            days = Number(days); // Ensure days is a number
-            // Always generate a fresh itinerary (disable cache)
-            const prompt = `Generate exactly ${days} days of a detailed, day-by-day travel itinerary.\nEach day should be labeled as 'Day 1', 'Day 2', etc.\nDestinations: ${destinations.join(', ')}\nPreferences: ${preferences}\nBudget: $${budget}\nFormat the response with clear day-by-day breakdowns. Do not combine days.`;
-            const itinerary = await generateText(prompt);
+            let { destinations, preferences, budget, days, aiProvider, modelName } = parsedBody;
+            days = Number(days);
+            aiProvider = aiProvider || process.env.AI_PROVIDER || 'local';
+            modelName = modelName || process.env.MODEL_NAME || 'llama3.1:latest';
 
-            // Optionally, you can still log the result
+            const prompt = `Generate exactly ${days} days of a detailed, day-by-day travel itinerary.\nEach day should be labeled as 'Day 1', 'Day 2', etc.\nDestinations: ${destinations.join(', ')}\nPreferences: ${preferences}\nBudget: $${budget}\nFormat the response with clear day-by-day breakdowns. Do not combine days.`;
+
+            let itinerary;
+            if (aiProvider === 'openai') {
+                itinerary = await generateOpenAIText(prompt, modelName);
+            } else {
+                itinerary = await generateText(prompt);
+            }
+
             await logItinerary(destinations, preferences, budget, itinerary);
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
