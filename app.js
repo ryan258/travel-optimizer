@@ -81,6 +81,47 @@ async function generateOpenAIText(prompt, modelName) {
     }
 }
 
+// Function to generate text using Claude API
+async function generateClaudeText(prompt, modelName) {
+    const apiKey = process.env.CLAUDE_API_KEY;
+    const endpoint = 'https://api.anthropic.com/v1/messages';
+    try {
+        const response = await axios.post(endpoint, {
+            model: modelName,
+            max_tokens: 1000,
+            temperature: 0.7,
+            messages: [{ role: 'user', content: prompt }]
+        }, {
+            headers: {
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json'
+            }
+        });
+        // Claude's response format may differ; adjust as needed
+        return response.data.content[0].text || response.data.content;
+    } catch (error) {
+        console.error('Claude API error:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to fetch response from Claude API');
+    }
+}
+
+// Function to generate text using Gemini API
+async function generateGeminiText(prompt, modelName) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    try {
+        const response = await axios.post(endpoint, {
+            contents: [{ parts: [{ text: prompt }] }]
+        });
+        // Gemini's response format may differ; adjust as needed
+        return response.data.candidates[0].content.parts[0].text;
+    } catch (error) {
+        console.error('Gemini API error:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to fetch response from Gemini API');
+    }
+}
+
 // Function to validate input
 function validateInput(body) {
     const { destinations, preferences, budget, days } = body;
@@ -140,6 +181,10 @@ async function handleOptimizeItinerary(req, res) {
             let itinerary;
             if (aiProvider === 'openai') {
                 itinerary = await generateOpenAIText(prompt, modelName);
+            } else if (aiProvider === 'claude') {
+                itinerary = await generateClaudeText(prompt, modelName);
+            } else if (aiProvider === 'gemini') {
+                itinerary = await generateGeminiText(prompt, modelName);
             } else {
                 itinerary = await generateText(prompt);
             }
